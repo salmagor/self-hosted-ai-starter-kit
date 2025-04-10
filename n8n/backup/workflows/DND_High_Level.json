@@ -1,0 +1,435 @@
+{
+  "name": "DND High Level",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -420,
+        260
+      ],
+      "id": "32d847de-7928-4ccc-96ee-ce7f2fa56ada",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "binaryPropertyName": "=data",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        860,
+        280
+      ],
+      "id": "2082f7e8-434e-411f-9454-3a5c07f355bf",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "rKArVO1GsQfyIdA3",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "89d5b8dc-206c-4838-b30c-c9fbe9a0baad",
+        "options": {
+          "binaryPropertyName": "data"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -600,
+        0
+      ],
+      "id": "eb713b06-a6b0-4b51-a9ed-d70e779dff4c",
+      "name": "Webhook",
+      "webhookId": "89d5b8dc-206c-4838-b30c-c9fbe9a0baad",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "## Inputs\n\n**Obsidian Session**\n--Includes prep and a placeholder for summary\n\n\n**Obsidian \"meta-data\" about PCs/world**\n-How to feed to AI? \n--Via the webhook?\n\n\n**Recording**\n-From the session\n\n## Flow \n\n**Collect Inputs**\n-how to assign speakers? can Trascribe get context/instructions?\n\n\n\n\n",
+        "height": 380,
+        "width": 600
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -540,
+        780
+      ],
+      "typeVersion": 1,
+      "id": "514ffdbd-78cf-40b6-b6dd-a3e9880da377",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f71f882e-2cb9-4b72-b28e-94147c3ffe15",
+              "name": "body.content",
+              "value": "={{ $json.body.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -360,
+        0
+      ],
+      "id": "ef2573ef-b262-47dc-9122-a79d83de3778",
+      "name": "Edit Fields",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -180,
+        0
+      ],
+      "id": "528f0475-bb03-4bb6-b8e7-fa5a66bac2b2",
+      "name": "Convert to File",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "## DOTO\n**Obsidian** \n\n-Fix references to show text and not references in the webhook\n",
+        "height": 340,
+        "width": 480
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        440,
+        740
+      ],
+      "typeVersion": 1,
+      "id": "c93082ef-2dc7-4955-b718-ae662d077f08",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        640,
+        260
+      ],
+      "id": "6953b60c-cc1f-4b40-b28e-7c0e6a9951e7",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "include": "specifiedFields",
+        "fieldsToInclude": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1100,
+        280
+      ],
+      "id": "08aecdaa-c1a9-4206-807a-b700c0daf628",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/data/shared/DND/Game Session 2.wav",
+        "options": {
+          "dataPropertyName": "data"
+        }
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        -180,
+        260
+      ],
+      "id": "5db1b511-847d-4452-a55e-526461952bbb",
+      "name": "Load Initial File",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "command": "=mkdir -p \"{{ $json.directory }}/audio_chunks\" && \\\nffmpeg -i \"{{ $json.directory }}/{{ $json.fileName }}\" -f segment -segment_time 120 -c copy \"{{ $json.directory }}/audio_chunks/chunk_%03d.{{ $json.fileExtension }}\" && \\\necho \"{{ $json.directory }}/audio_chunks\""
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        100,
+        260
+      ],
+      "id": "68f6cb3e-e588-44b0-82d0-20f4be1a1129",
+      "name": "Split using ffmpeg"
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $json.stdout }}/*",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        320,
+        260
+      ],
+      "id": "3a470c71-4098-4e4a-8e18-f960c3bd9f71",
+      "name": "Read Split Files"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "51c496e6-f199-41d4-ab2d-0c474806e724",
+              "name": "transcription",
+              "value": "={{ $json.data }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1100,
+        -220
+      ],
+      "id": "5874619e-ba44-4fd9-a840-79e5520a5016",
+      "name": "Small Clean up"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Initialize a variable to hold the concatenated text\nlet full_text = '';\n\n// Loop over input items and concatenate the text of each item\nfor (const item of $input.all()) {\n  const text = item.json.transcription[0].text;\n  full_text += text;\n}\n\nreturn [{ json: { full_text } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        -220
+      ],
+      "id": "15a109bb-5477-42a8-80c2-709aa6e8f332",
+      "name": "Combine Output to Big Text"
+    },
+    {
+      "parameters": {
+        "command": "=rm -rf {{ $('Read Split Files').item.json.directory }}"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        20
+      ],
+      "id": "8f1d685c-900e-4e47-948d-a559e335236f",
+      "name": "Clean Files when Done"
+    }
+  ],
+  "pinData": {
+    "Small Clean up": [
+      {
+        "json": {
+          "transcription": [
+            {
+              "text": "Vroom, vroom. You see the red cap is now on the motorcycle and takes a glimmering coin out of his vest, drops it into a coin slot right near the handlebars, revs, and suddenly purplish fire erupts out of the back of the motorcycle, and he peels out to go around this giant mound of skulls downriver from you a bit. Just as he does this, you now hear more booms coming, not just from the explosions across the river, but also from the other side of this mound of skulls that he's going around. Filj, what do you do? I'm going to run on the other side of the skulls. All right. So you, as you go... The non-explosion side. All right. It's too clear. So you're running up to the skulls? Yes. But like part of the skulls here, explosions there, me, like here on the other side. All right. So you are now in the shadow of these skulls, and as you get close, you see that crawling all over them in the eye sockets and the mouths are strange greenish maggots. And many of them, as you come up, look at you. I look back at them. I say, what are you looking at? You hear many voices emerge as one from the maggots, and the voice says, we're looking at our next meal."
+            }
+          ]
+        }
+      },
+      {
+        "json": {
+          "transcription": [
+            {
+              "text": "I continue sauntering past the skulls as if I'm not worried at all by maggots, as if they don't scare me. Half-Met, what do you do? How far away is this red-capped dwarf on the motorcycle? He is now 60 feet away from you. 60 feet? Yep. Now, he threw this coin into a hole, and that looks like what started up this infernal contraption. Is there any ... Did he turn something to start it, or did it just this? Just this. Coin? That. Yep. Okay. Then, I'm going to run. I'm going to double-move and hop on the back, and grab him around the waist. All right. As you come running up, I'm going to need you to make a dexterity acrobatics check to see if you can leap onto this moving motorcycle. Okay. All right. I'm somewhat dexterous. No, Gary didn't want me to hit that one. Just like Gary Gygax. I just rolled a nat one. Do as you will, Dungeon Master. The dice have spoken, yeah. You realize that what you are running on are the dried up carapaces of the same maggots that Phil just saw, but dead ones. As this motorcycle is peeling out in front of you, and you just miss it, it launches a bunch of these dried carapaces straight into your face. Are they protein-rich? Are you going to take some down?"
+            }
+          ]
+        }
+      },
+      {
+        "json": {
+          "transcription": [
+            {
+              "text": "Um, seeing as how this is probably the first level of hell, I'm going to say no. I'm going to spit him out. All right. Or like fire, like a little fire in my mouth. I'm just going to, you know. If I could firebolt in my mouth. You're going to fire gargle. In my mouth. So as you huff a little fire to get it out of your mouth, there, as they burn, there's this strong brimstone smell right in your nostrils. Well. Clears the sinuses. Mm, Tuesday. All right. I don't know any of you, but I can tell you're in trouble. So I look out and I see you go chasing just eat, eat dirt. So I like, there's, is there clouds in the sky here? There are clouds. This way, they look like amber clouds that are almost impossible to see because they're the same color as the sky. But you see this rippling. Then, just over the river, in the opposite direction from the pile of skulls, you see what you think is a cloud, but then suddenly it's darting around. And you realize it is innumerable insects flying in a cloud toward the great battle on the other side of the river. All right. Well, that doesn't look like a cloud. So I'm going to, like, slowly look towards the amber one. That looks a little bit more promising. I'm going to use cold lightning down on the thing trying to get away from us, on the machine that I don't understand. Because I'm a simple, I'm a simple person. It's going to be a dex saving throw for us. All right."
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Load Initial File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Split using ffmpeg",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Small Clean up",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Clean Files when Done",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Initial File": {
+      "main": [
+        [
+          {
+            "node": "Split using ffmpeg",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split using ffmpeg": {
+      "main": [
+        [
+          {
+            "node": "Read Split Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Split Files": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Small Clean up": {
+      "main": [
+        [
+          {
+            "node": "Combine Output to Big Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Output to Big Text": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "5b85ba89-0da6-48f2-97ba-1c070dd6e8cf",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "id": "piAc6Z0uiMEfaZCG",
+  "tags": []
+}
